@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Generator</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        #resultScreen {
+            background-color: black;
+            color: limegreen;
+            padding: 10px;
+            height: 1000px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mt-5">Describe a Function to Generate Python Code</h2>
+        <form id="codeForm" action='/gen',method='post'>
+            <div class="form-group">
+                <label for="src">Function Description:</label>
+                <input type="text" class="form-control" id="src" name="src" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Code</button>
+        </form>
+        
+        <div class="mt-4" style="position: relative;">
+            <div id="resultScreen"></div>
+            <button onclick="copyToClipboard()" style="position: absolute; right: 0; top: 0;" class="btn btn-secondary">Copy Code</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('codeForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            const srcValue = document.getElementById('src').value;
+            
+            // Fetch generated code from your Flask backend
+            fetch('/gen', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({src: srcValue}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.result) {
+                    printResult(data.result); // Print the result
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function printResult(result) {
+            const screen = document.getElementById('resultScreen');
+            screen.textContent = ''; // Clear previous content
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < result.length) {
+                    screen.textContent += result.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 20); // Adjust the speed as needed
+        }
+
+        function copyToClipboard() {
+            const textToCopy = document.getElementById('resultScreen').textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Code copied to clipboard!');
+            }, (err) => {
+                console.error('Could not copy text:', err);
+            });
+        }
+    </script>
+</body>
+</html>
